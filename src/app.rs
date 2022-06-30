@@ -1,14 +1,11 @@
+use crate::table_sample::TableSample;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io;
-use tui::{
-    backend::CrosstermBackend,
-    widgets::{Block, Borders, TableState},
-    Terminal,
-};
+use tui::{backend::CrosstermBackend, widgets::TableState, Terminal};
 
 pub struct App<'a> {
     pub state: TableState,
@@ -44,9 +41,7 @@ impl<'a> App<'a> {
         let mut app = App::new();
         loop {
             terminal.draw(|f| {
-                let size = f.size();
-                let block = Block::default().title("Block").borders(Borders::ALL);
-                f.render_widget(block, size);
+                TableSample::render(f, &mut app);
             })?;
 
             if let Event::Key(key) = event::read()? {
