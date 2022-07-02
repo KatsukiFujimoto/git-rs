@@ -4,12 +4,13 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use git2::{BranchType, Repository};
+use git2::{Branch, BranchType, Repository};
 use std::{env, io, path::PathBuf};
 use tui::{backend::CrosstermBackend, widgets::TableState, Terminal};
 
 pub struct App {
     pub state: TableState,
+    pub repository: Repository,
     pub branch_names: Vec<String>,
 }
 impl App {
@@ -22,8 +23,22 @@ impl App {
             .collect();
         App {
             state: TableState::default(),
+            repository,
             branch_names,
         }
+    }
+
+    pub fn refresh_branch_names(&mut self) {
+        self.branch_names = self
+            .repository
+            .branches(Some(BranchType::Local))
+            .unwrap()
+            .map(|x| x.unwrap().0.name().unwrap().unwrap().to_string())
+            .collect();
+    }
+
+    pub fn selected_branch_name(&self) -> Option<&String> {
+        self.state.selected().and_then(|i| self.branch_names.get(i))
     }
 
     pub fn start() -> Result<(), io::Error> {
@@ -47,6 +62,16 @@ impl App {
                     KeyCode::Char('q') => break,
                     KeyCode::Down | KeyCode::Char('j') => app.next(),
                     KeyCode::Up | KeyCode::Char('k') => app.previous(),
+                    KeyCode::Char('d') => {
+                        if let Some(branch_name) = app.selected_branch_name() {
+                            let mut branch: Branch = app
+                                .repository
+                                .find_branch(branch_name, BranchType::Local)
+                                .unwrap();
+                            branch.delete().unwrap();
+                        }
+                        app.refresh_branch_names();
+                    }
                     _ => {}
                 }
             }
