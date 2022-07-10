@@ -5,40 +5,42 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use git2::{Branch, BranchType, Repository};
-use std::{env, io, path::PathBuf};
+use std::{env, io};
 use tui::{backend::CrosstermBackend, widgets::TableState, Terminal};
 
-pub struct App {
+pub struct App<'a> {
     pub state: TableState,
-    pub repository: Repository,
-    pub branch_names: Vec<String>,
+    pub repository: &'a Repository,
+    pub branches: Vec<(Branch<'a>, BranchType)>,
 }
-impl App {
-    pub fn new(path: PathBuf) -> App {
-        let repository = Repository::open(path).unwrap();
-        let branch_names = repository
+impl<'a> App<'a> {
+    pub fn new(repository: &'a Repository) -> App<'a> {
+        let branches = repository
             .branches(Some(BranchType::Local))
             .unwrap()
-            .map(|x| x.unwrap().0.name().unwrap().unwrap().to_string())
+            .map(|x| x.unwrap())
             .collect();
         App {
             state: TableState::default(),
             repository,
-            branch_names,
+            branches,
         }
     }
 
-    pub fn refresh_branch_names(&mut self) {
-        self.branch_names = self
+    pub fn refresh_branches(&mut self) {
+        self.branches = self
             .repository
             .branches(Some(BranchType::Local))
             .unwrap()
-            .map(|x| x.unwrap().0.name().unwrap().unwrap().to_string())
+            .map(|x| x.unwrap())
             .collect();
     }
 
-    pub fn selected_branch_name(&self) -> Option<&String> {
-        self.state.selected().and_then(|i| self.branch_names.get(i))
+    pub fn selected_branch(&mut self) -> Option<&mut Branch<'a>> {
+        match self.state.selected() {
+            Some(i) => Some(&mut self.branches[i].0),
+            _ => None,
+        }
     }
 
     pub fn start() -> Result<(), io::Error> {
@@ -51,10 +53,18 @@ impl App {
 
         // create app and run it
         let path = env::current_dir().unwrap();
-        let mut app = App::new(path);
+        let repository = Repository::open(path).unwrap();
+        let mut app = App::new(&repository);
         loop {
             terminal.draw(|f| {
-                TableSample::render(f, &mut app.state, &app.branch_names);
+                TableSample::render(
+                    f,
+                    &mut app.state,
+                    &app.branches
+                        .iter()
+                        .map(|x| x.0.name().unwrap().unwrap().to_string())
+                        .collect(),
+                );
             })?;
 
             if let Event::Key(key) = event::read()? {
@@ -63,14 +73,10 @@ impl App {
                     KeyCode::Down | KeyCode::Char('j') => app.next(),
                     KeyCode::Up | KeyCode::Char('k') => app.previous(),
                     KeyCode::Char('d') => {
-                        if let Some(branch_name) = app.selected_branch_name() {
-                            let mut branch: Branch = app
-                                .repository
-                                .find_branch(branch_name, BranchType::Local)
-                                .unwrap();
+                        if let Some(branch) = app.selected_branch() {
                             branch.delete().unwrap();
+                            app.refresh_branches();
                         }
-                        app.refresh_branch_names();
                     }
                     _ => {}
                 }
@@ -92,7 +98,7 @@ impl App {
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i >= self.branch_names.len() - 1 {
+                if i >= self.branches.len() - 1 {
                     0
                 } else {
                     i + 1
@@ -107,7 +113,7 @@ impl App {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                    self.branch_names.len() - 1
+                    self.branches.len() - 1
                 } else {
                     i - 1
                 }
