@@ -10,3 +10,8 @@ tui = "*"
 crossterm = "*"
 git2 = "*"
 anyhow = "*"
+
+[dev-dependencies]
+mockall = "*"
+pretty_assertions = "*"
+assert_matches = "*"
