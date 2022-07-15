@@ -14,8 +14,17 @@ impl<'repo> BranchRepository for GitRepository<'repo> {
         }
     }
 
-    fn delete_branch(&self, _branch: Branch) -> anyhow::Result<Branch> {
-        todo!()
+    fn delete_branch(&self, branch: Branch) -> anyhow::Result<Branch> {
+        match self
+            .repository
+            .find_branch(&(branch.name), branch.branch_type.clone().into())
+        {
+            Ok(mut git_branch) => match git_branch.delete() {
+                Ok(_) => Ok(branch),
+                Err(e) => Err(anyhow::anyhow!(e)),
+            },
+            Err(e) => Err(anyhow::anyhow!(e)),
+        }
     }
 }
 
@@ -36,6 +45,15 @@ impl From<GitBranchType> for BranchType {
         match x {
             GitBranchType::Local => BranchType::Local,
             GitBranchType::Remote => BranchType::Remote,
+        }
+    }
+}
+
+impl From<BranchType> for GitBranchType {
+    fn from(x: BranchType) -> GitBranchType {
+        match x {
+            BranchType::Local => GitBranchType::Local,
+            BranchType::Remote => GitBranchType::Remote,
         }
     }
 }
