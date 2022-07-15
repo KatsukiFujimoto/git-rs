@@ -7,7 +7,7 @@ use git2::{Branch as GitBranch, BranchType as GitBranchType};
 
 impl<'repo> BranchRepository for GitRepository<'repo> {
     fn get_branches(&self) -> anyhow::Result<Vec<Branch>> {
-        match self.repository.branches(Some(GitBranchType::Local)) {
+        match self.git_repo.branches(Some(GitBranchType::Local)) {
             // TODO: branches.map()が失敗した場合のハンドリングをする
             Ok(branches) => Ok(branches.map(|x| x.unwrap().into()).collect()),
             Err(e) => Err(anyhow::anyhow!(e)),
@@ -16,7 +16,7 @@ impl<'repo> BranchRepository for GitRepository<'repo> {
 
     fn delete_branch(&self, branch: Branch) -> anyhow::Result<Branch> {
         match self
-            .repository
+            .git_repo
             .find_branch(&(branch.name), branch.branch_type.clone().into())
         {
             Ok(mut git_branch) => match git_branch.delete() {
