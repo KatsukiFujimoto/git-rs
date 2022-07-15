@@ -13,6 +13,10 @@ impl<'repo> BranchRepository for GitRepository<'repo> {
             Err(e) => Err(anyhow::anyhow!(e)),
         }
     }
+
+    fn delete_branch(&self, _branch: Branch) -> anyhow::Result<Branch> {
+        todo!()
+    }
 }
 
 impl<'repo> From<(GitBranch<'repo>, GitBranchType)> for Branch {
