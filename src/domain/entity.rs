@@ -8,6 +8,7 @@ pub mod fixtures {
         Branch {
             name: "sample_branch".into(),
             branch_type: BranchType::Local,
+            current: false,
         }
     }
 }

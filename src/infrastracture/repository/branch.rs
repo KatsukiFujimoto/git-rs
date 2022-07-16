@@ -36,6 +36,7 @@ impl<'repo> From<(GitBranch<'repo>, GitBranchType)> for Branch {
             // TODO: branch.name()が失敗した場合のハンドリングをする
             name: branch.name().unwrap().unwrap().to_string(),
             branch_type: branch_type.into(),
+            current: branch.is_head(),
         }
     }
 }
