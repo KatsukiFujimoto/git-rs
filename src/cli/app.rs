@@ -43,7 +43,6 @@ impl App {
                     KeyCode::Char('k') | KeyCode::Up => stateful_table.previous(),
                     KeyCode::Char('d') => {
                         if let Some(branch) = stateful_table.selected() {
-                            // TODO: branchを削除する処理では毎回cloneせずに参照でいけるようにする
                             branch_deleter.run(branch.clone())?;
                             stateful_table.set_items(branches_getter.run()?);
                         }
