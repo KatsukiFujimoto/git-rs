@@ -10,6 +10,8 @@ tui = "*"
 crossterm = "*"
 git2 = "*"
 anyhow = "*"
+strum = "*"
+strum_macros = "*"
 
 [dev-dependencies]
 mockall = "*"

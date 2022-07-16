@@ -6,14 +6,11 @@ pub struct Branch {
 
 impl Branch {
     pub fn branch_type(&self) -> String {
-        match self.branch_type {
-            BranchType::Local => "local".into(),
-            BranchType::Remote => "remote".into(),
-        }
+        self.branch_type.to_string()
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, strum_macros::Display)]
 pub enum BranchType {
     Local,
     Remote,
@@ -35,7 +32,7 @@ mod tests {
             branch_type: BranchType::Remote,
             ..branch_sample()
         };
-        assert_eq!(branch_local.branch_type(), "local".to_string());
-        assert_eq!(branch_remote.branch_type(), "remote".to_string());
+        assert_eq!(branch_local.branch_type(), "Local".to_string());
+        assert_eq!(branch_remote.branch_type(), "Remote".to_string());
     }
 }
