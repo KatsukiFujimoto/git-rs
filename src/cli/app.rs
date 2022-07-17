@@ -1,4 +1,9 @@
-use self::{component::branch_table::BranchTable, stateful_table::StatefulTable};
+use self::{
+    component::{
+        branch_deletion_confirmation::BranchDeletionConfirmation, branch_table::BranchTable,
+    },
+    stateful_table::StatefulTable,
+};
 use crate::{
     infrastracture::repository::GitRepository,
     usecase::branch::{delete::DeleteBranch, get_all::GetAllBranches},
@@ -19,6 +24,11 @@ use tui::{
 pub mod component;
 pub mod stateful_table;
 
+enum Page {
+    BranchList,
+    BranchDeletionConfirmation,
+}
+
 pub struct App {}
 impl App {
     pub fn start(git_path: &dyn AsRef<Path>) -> anyhow::Result<()> {
@@ -33,29 +43,45 @@ impl App {
         let repo = GitRepository::new(&git_repo);
         let branches_getter = GetAllBranches::new(&repo);
         let branch_deleter = DeleteBranch::new(&repo);
-        let branches = branches_getter.run()?;
-        let mut stateful_table = StatefulTable::new(branches);
+        let mut stateful_table = StatefulTable::new(branches_getter.run()?);
+        let mut page = Page::BranchList;
         loop {
             terminal.draw(|frame| {
                 let layout = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .margin(5)
                     .split(frame.size());
-                BranchTable::render(frame, layout[0], &mut stateful_table);
+                match page {
+                    Page::BranchList => {
+                        BranchTable::render(frame, layout[0], &mut stateful_table);
+                    }
+                    Page::BranchDeletionConfirmation => {
+                        BranchDeletionConfirmation::render(frame, layout[0]);
+                    }
+                }
             })?;
 
             if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Char('q') => break,
-                    KeyCode::Char('j') | KeyCode::Down => stateful_table.next(),
-                    KeyCode::Char('k') | KeyCode::Up => stateful_table.previous(),
-                    KeyCode::Char('d') => {
-                        if let Some(branch) = stateful_table.selected() {
-                            branch_deleter.run(branch.clone())?;
-                            stateful_table.set_items(branches_getter.run()?);
+                match page {
+                    Page::BranchList => match key.code {
+                        KeyCode::Char('q') => break,
+                        KeyCode::Char('j') | KeyCode::Down => stateful_table.next(),
+                        KeyCode::Char('k') | KeyCode::Up => stateful_table.previous(),
+                        KeyCode::Char('d') => page = Page::BranchDeletionConfirmation,
+                        _ => {}
+                    },
+                    Page::BranchDeletionConfirmation => match key.code {
+                        KeyCode::Char('q') => break,
+                        KeyCode::Char('y') => {
+                            if let Some(branch) = stateful_table.selected() {
+                                branch_deleter.run(branch.clone())?;
+                                stateful_table.set_items(branches_getter.run()?);
+                                page = Page::BranchList;
+                            }
                         }
-                    }
-                    _ => {}
+                        KeyCode::Char('n') => page = Page::BranchList,
+                        _ => {}
+                    },
                 }
             }
         }
