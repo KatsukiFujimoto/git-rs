@@ -1,5 +1,5 @@
 use crate::{
-    cli::app::{component::branch_table::BranchTable, stateful_table::StatefulTable, Page},
+    cli::app::{component::branch_list::BranchList, stateful_table::StatefulTable, Page},
     infrastracture::repository::GitRepository,
     usecase::branch::get_all::GetAllBranches,
 };
@@ -26,7 +26,7 @@ impl BranchListController {
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .margin(5)
                     .split(frame.size());
-                BranchTable::render(frame, layout[0], &mut stateful_branches);
+                BranchList::render(frame, layout[0], &mut stateful_branches);
             })?;
             if let Event::Key(key) = event::read()? {
                 match key.code {

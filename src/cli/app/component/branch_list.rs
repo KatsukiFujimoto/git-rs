@@ -8,8 +8,8 @@ use tui::{
     Frame,
 };
 
-pub struct BranchTable;
-impl BranchTable {
+pub struct BranchList;
+impl BranchList {
     pub fn render<B: Backend>(
         frame: &mut Frame<B>,
         area: Rect,
