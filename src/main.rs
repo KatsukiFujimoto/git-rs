@@ -3,6 +3,6 @@ use std::env::current_dir;
 
 fn main() -> anyhow::Result<()> {
     let current_dir = current_dir()?;
-    App::start(&current_dir.as_path())?;
+    App::new().start(&current_dir.as_path())?;
     Ok(())
 }
