@@ -20,7 +20,7 @@ impl BranchDeletionConfirmationController {
     pub fn run(
         terminal: &mut Terminal<CrosstermBackend<Stdout>>,
         repo: &GitRepository,
-        stateful_branches: &StatefulTable<Branch>,
+        stateful_branches: &mut StatefulTable<Branch>,
     ) -> anyhow::Result<Option<Page>> {
         loop {
             terminal.draw(|frame| {
@@ -28,7 +28,7 @@ impl BranchDeletionConfirmationController {
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .margin(5)
                     .split(frame.size());
-                BranchDeletionConfirmation::render(frame, layout[0]);
+                BranchDeletionConfirmation::render(frame, layout[0], stateful_branches);
             })?;
             if let Event::Key(key) = event::read()? {
                 match key.code {
