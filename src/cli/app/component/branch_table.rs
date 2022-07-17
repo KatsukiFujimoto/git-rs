@@ -2,7 +2,7 @@ use crate::cli::app::stateful_table::StatefulTable;
 use crate::domain::entity::branch::Branch;
 use tui::{
     backend::Backend,
-    layout::{Constraint, Layout},
+    layout::{Constraint, Rect},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Cell, Row, Table},
     Frame,
@@ -10,11 +10,11 @@ use tui::{
 
 pub struct BranchTable;
 impl BranchTable {
-    pub fn render<B: Backend>(frame: &mut Frame<B>, stateful_table: &mut StatefulTable<Branch>) {
-        let layout = Layout::default()
-            .constraints([Constraint::Percentage(100)].as_ref())
-            .margin(5)
-            .split(frame.size());
+    pub fn render<B: Backend>(
+        frame: &mut Frame<B>,
+        area: Rect,
+        stateful_table: &mut StatefulTable<Branch>,
+    ) {
         let header = Row::new([
             Cell::from("Branch Name"),
             Cell::from("Branch Type"),
@@ -37,6 +37,6 @@ impl BranchTable {
                 Constraint::Percentage(40),
                 Constraint::Percentage(20),
             ]);
-        frame.render_stateful_widget(table, layout[0], &mut stateful_table.state);
+        frame.render_stateful_widget(table, area, &mut stateful_table.state);
     }
 }

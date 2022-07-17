@@ -1,4 +1,4 @@
-use self::{stateful_table::StatefulTable, view::branch_table::BranchTable};
+use self::{component::branch_table::BranchTable, stateful_table::StatefulTable};
 use crate::{
     infrastracture::repository::GitRepository,
     usecase::branch::{delete::DeleteBranch, get_all::GetAllBranches},
@@ -10,10 +10,14 @@ use crossterm::{
 };
 use git2::Repository;
 use std::{io, path::Path};
-use tui::{backend::CrosstermBackend, Terminal};
+use tui::{
+    backend::CrosstermBackend,
+    layout::{Constraint, Layout},
+    Terminal,
+};
 
+pub mod component;
 pub mod stateful_table;
-pub mod view;
 
 pub struct App {}
 impl App {
@@ -33,7 +37,11 @@ impl App {
         let mut stateful_table = StatefulTable::new(branches);
         loop {
             terminal.draw(|frame| {
-                BranchTable::render(frame, &mut stateful_table);
+                let layout = Layout::default()
+                    .constraints([Constraint::Percentage(100)].as_ref())
+                    .margin(5)
+                    .split(frame.size());
+                BranchTable::render(frame, layout[0], &mut stateful_table);
             })?;
 
             if let Event::Key(key) = event::read()? {
