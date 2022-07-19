@@ -1,7 +1,7 @@
 use crate::{
     cli::app::{component::branch_list::BranchList, stateful_table::StatefulTable, Page},
     infrastracture::repository::GitRepository,
-    usecase::branch::get_all::GetAllBranches,
+    usecase::branch::{delete::DeleteBranch, get_all::GetAllBranches},
 };
 use crossterm::event::{self, Event, KeyCode};
 use std::io::Stdout;
@@ -37,6 +37,12 @@ impl BranchListController {
                     KeyCode::Char('k') | KeyCode::Up => stateful_branches.previous(),
                     KeyCode::Char('d') => {
                         break Ok(Some(Page::BranchDeletionConfirmation(stateful_branches)));
+                    }
+                    KeyCode::Char('D') => {
+                        if let Some(branch) = stateful_branches.selected() {
+                            DeleteBranch::new(repo).run(branch.clone())?;
+                        }
+                        break Ok(Some(Page::BranchList));
                     }
                     _ => {}
                 }
