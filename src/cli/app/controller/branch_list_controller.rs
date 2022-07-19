@@ -39,7 +39,7 @@ impl BranchListController {
                         break Ok(Some(Page::BranchDeletionConfirmation(stateful_branches)));
                     }
                     KeyCode::Char('D') => {
-                        if let Some(branch) = stateful_branches.selected() {
+                        if let Some(branch) = stateful_branches.cursor_focused() {
                             DeleteBranch::new(repo).run(branch.clone())?;
                         }
                         break Ok(Some(Page::BranchList));

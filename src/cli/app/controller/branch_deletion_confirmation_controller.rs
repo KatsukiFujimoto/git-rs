@@ -33,7 +33,7 @@ impl BranchDeletionConfirmationController {
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('y') => {
-                        if let Some(branch) = stateful_branches.selected() {
+                        if let Some(branch) = stateful_branches.cursor_focused() {
                             DeleteBranch::new(repo).run(branch.clone())?;
                         }
                         break Ok(Some(Page::BranchList));

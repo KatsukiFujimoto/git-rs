@@ -18,7 +18,7 @@ impl<T> StatefulTable<T> {
         self.state.select(None);
     }
 
-    pub fn selected(&self) -> Option<&T> {
+    pub fn cursor_focused(&self) -> Option<&T> {
         self.items.get(self.state.selected()?)
     }
 
@@ -72,7 +72,7 @@ mod tests {
         stateful_table.state.select(Some(0));
         let new_items = vec!["a", "b"];
         stateful_table.set_items(new_items.clone());
-        assert_eq!(stateful_table.selected(), None);
+        assert_eq!(stateful_table.cursor_focused(), None);
         assert_eq!(stateful_table.items, new_items);
     }
 
@@ -81,14 +81,14 @@ mod tests {
     #[case(Some(0), Some(&"a"))]
     #[case(Some(1), Some(&"b"))]
     #[case(Some(2), Some(&"c"))]
-    pub fn test_selected(
+    pub fn test_cursor_focused(
         #[case] selected_index: Option<usize>,
         #[case] selected_value: Option<&&str>,
     ) {
         let items = vec!["a", "b", "c"];
         let mut stateful_table = StatefulTable::<&str>::new(items);
         stateful_table.state.select(selected_index);
-        assert_eq!(stateful_table.selected(), selected_value);
+        assert_eq!(stateful_table.cursor_focused(), selected_value);
     }
 
     #[rstest]

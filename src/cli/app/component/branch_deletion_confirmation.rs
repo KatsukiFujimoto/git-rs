@@ -40,7 +40,7 @@ impl BranchDeletionConfirmation {
             frame,
             layout[1],
             stateful_branches
-                .selected()
+                .cursor_focused()
                 .map(|x| vec![x])
                 .unwrap_or_default(),
         )
