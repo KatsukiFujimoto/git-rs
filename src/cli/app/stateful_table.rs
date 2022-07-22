@@ -1,15 +1,18 @@
+use std::{collections::HashSet, hash::Hash};
 use tui::widgets::TableState;
 
-pub struct StatefulTable<T> {
+pub struct StatefulTable<T: Eq + Hash + Clone> {
     pub state: TableState,
     pub items: Vec<T>,
+    pub selected_items: HashSet<T>,
 }
 
-impl<T> StatefulTable<T> {
+impl<T: Eq + Hash + Clone> StatefulTable<T> {
     pub fn new(items: Vec<T>) -> Self {
         Self {
             state: TableState::default(),
             items,
+            selected_items: HashSet::new(),
         }
     }
 
@@ -49,6 +52,24 @@ impl<T> StatefulTable<T> {
         };
         self.state.select(Some(i));
     }
+
+    pub fn selected(&self) -> Vec<&T> {
+        self.selected_items.iter().collect()
+    }
+
+    pub fn select(&mut self) {
+        if let Some(cursor_focused_item) = self.cursor_focused() {
+            let cursor_focused_item = cursor_focused_item.clone();
+            self.selected_items.insert(cursor_focused_item);
+        }
+    }
+
+    pub fn unselect(&mut self) {
+        if let Some(cursor_focused_item) = self.cursor_focused() {
+            let cursor_focused_item = cursor_focused_item.clone();
+            self.selected_items.remove(&cursor_focused_item);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -64,6 +85,7 @@ mod tests {
         let stateful_table = StatefulTable::<&str>::new(items.clone());
         assert_eq!(stateful_table.state.selected(), selected);
         assert_eq!(stateful_table.items, items);
+        assert!(stateful_table.selected_items.is_empty());
     }
 
     #[test]
@@ -121,5 +143,44 @@ mod tests {
         stateful_table.state.select(selected_before);
         stateful_table.previous();
         assert_eq!(stateful_table.state.selected(), selected_after);
+    }
+
+    #[test]
+    pub fn test_selected() {
+        let items = vec!["a", "b", "c"];
+        let mut stateful_table = StatefulTable::<&str>::new(items);
+        stateful_table.state.select(Some(0));
+        stateful_table.select();
+        stateful_table.state.select(Some(2));
+        stateful_table.select();
+        assert_eq!(stateful_table.selected(), vec![&"a", &"c"]);
+    }
+
+    #[test]
+    pub fn test_select() {
+        let items = vec!["a", "b", "c"];
+        let mut stateful_table = StatefulTable::<&str>::new(items);
+        stateful_table.state.select(Some(0));
+        stateful_table.select();
+        assert_eq!(stateful_table.selected_items, HashSet::from(["a"]));
+        stateful_table.state.select(Some(2));
+        stateful_table.select();
+        assert_eq!(stateful_table.selected_items, HashSet::from(["a", "c"]));
+    }
+
+    #[test]
+    pub fn test_unselect() {
+        let items = vec!["a", "b", "c"];
+        let mut stateful_table = StatefulTable::<&str>::new(items);
+        stateful_table.state.select(Some(0));
+        stateful_table.select();
+        stateful_table.state.select(Some(2));
+        stateful_table.select();
+        assert_eq!(stateful_table.selected_items, HashSet::from(["a", "c"]));
+        stateful_table.unselect();
+        assert_eq!(stateful_table.selected_items, HashSet::from(["a"]));
+        stateful_table.state.select(Some(0));
+        stateful_table.unselect();
+        assert_eq!(stateful_table.selected_items, HashSet::new());
     }
 }

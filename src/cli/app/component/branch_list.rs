@@ -1,8 +1,9 @@
+use super::selected_branch_list::SelectedBranchList;
 use crate::cli::app::stateful_table::StatefulTable;
 use crate::domain::entity::branch::Branch;
 use tui::{
     backend::Backend,
-    layout::{Constraint, Rect},
+    layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Cell, Row, Table},
     Frame,
@@ -15,6 +16,10 @@ impl BranchList {
         area: Rect,
         stateful_table: &mut StatefulTable<Branch>,
     ) {
+        let layout = Layout::default()
+            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
+            .margin(5)
+            .split(area);
         let header = Row::new([
             Cell::from("Branch Name"),
             Cell::from("Branch Type"),
@@ -37,6 +42,7 @@ impl BranchList {
                 Constraint::Percentage(40),
                 Constraint::Percentage(20),
             ]);
-        frame.render_stateful_widget(table, area, &mut stateful_table.state);
+        frame.render_stateful_widget(table, layout[0], &mut stateful_table.state);
+        SelectedBranchList::render(frame, layout[1], stateful_table.selected());
     }
 }

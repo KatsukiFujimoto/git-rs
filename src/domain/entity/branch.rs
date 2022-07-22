@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Branch {
     pub name: String,
     pub branch_type: BranchType,
@@ -11,7 +11,7 @@ impl Branch {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, strum_macros::Display)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, strum_macros::Display)]
 pub enum BranchType {
     Local,
     Remote,

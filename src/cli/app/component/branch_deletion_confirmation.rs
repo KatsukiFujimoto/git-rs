@@ -36,13 +36,6 @@ impl BranchDeletionConfirmation {
             .style(Style::default().bg(Color::Black))
             .alignment(tui::layout::Alignment::Left);
         frame.render_widget(paragraph, layout[0]);
-        SelectedBranchList::render(
-            frame,
-            layout[1],
-            stateful_branches
-                .cursor_focused()
-                .map(|x| vec![x])
-                .unwrap_or_default(),
-        )
+        SelectedBranchList::render(frame, layout[1], stateful_branches.selected())
     }
 }

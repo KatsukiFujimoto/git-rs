@@ -35,13 +35,17 @@ impl BranchListController {
                     }
                     KeyCode::Char('j') | KeyCode::Down => stateful_branches.next(),
                     KeyCode::Char('k') | KeyCode::Up => stateful_branches.previous(),
+                    KeyCode::Char('s') => stateful_branches.select(),
+                    KeyCode::Char('u') => stateful_branches.unselect(),
                     KeyCode::Char('d') => {
                         break Ok(Some(Page::BranchDeletionConfirmation(stateful_branches)));
                     }
                     KeyCode::Char('D') => {
-                        if let Some(branch) = stateful_branches.cursor_focused() {
-                            DeleteBranch::new(repo).run(branch.clone())?;
-                        }
+                        let usecase = DeleteBranch::new(repo);
+                        stateful_branches.selected().into_iter().for_each(|x| {
+                            // TODO: 失敗した場合のハンドリングをする必要あり
+                            usecase.run(x.clone()).unwrap();
+                        });
                         break Ok(Some(Page::BranchList));
                     }
                     _ => {}
